@@ -1,71 +1,50 @@
-x = 0;
-y = 0;
 
-draw_apple = "";
-screen_height = 0;
-screen_width = 0;
-speak_data = "";
-to_number = "";
-apple = "";
-
-var SpeechRecognition = window.webkitSpeechRecognition;
-  
-var recognition = new SpeechRecognition();
-
-function start()
-{
-  document.getElementById("status").innerHTML = "System is listening please speak";  
-  recognition.start();
-} 
- 
-recognition.onresult = function(event) {
-
- console.log(event); 
-
- content = event.results[0][0].transcript;
-  to_number = Number(content);
-  if(Number.isInteger(to_number) == true){
-    document.getElementById("status").innerHTML = "Started drawing apple"
-    draw_apple = "set";
-  }
-  else{
-    document.getElementById("status").innerHTML = "The speech has not been recognized a number"; 
-  }
-
-}
-
-function preload(){
-    apple = loadImage("apple.png");
-}
+difference = 0;
+rightWristX = 0;
+leftWristX = 0;
 
 function setup() {
- screen_width = window.innerWidth;
- screen_height = window.innerHeight;
- canvas = createCanvas(screen_width, screen_height - 150)
- canvas.position(100,100);
-}
-
-function draw() {
-  if(draw_apple == "set")
-  {
-      for(var i = 1; i <= to_number; i++){
-          x = Math.floor(Math.random() * 700);
-          y = Math.floor(Math.random() * 400);
-          image(apple, x, y, 50, 50);
-          speak_data = to_number;
-      }
-    document.getElementById("status").innerHTML = to_number + " Apples drawn";
-    draw_apple = "";
-    speak();
+    video = createCapture(VIDEO);
+    video.size(550, 500);
+  
+    canvas = createCanvas(550, 550);
+    canvas.position(560,250);
+  
+    poseNet = ml5.poseNet(video, modelLoaded);
+    poseNet.on('pose', gotPoses);
   }
+  
+  function modelLoaded() {
+    console.log('PoseNet Is Initialized!');
+  }
+
+function gotPoses(results)
+{
+    if(results.length > 0)
+    {
+        console.log(results);
+
+
+        leftWristX = results[0].pose.leftWrist.x;
+        rightWristX = results[0].pose.rightWrist.x;
+        difference = floor(leftWristX - rightWristX);
+
+        console.log("leftWristX = " + leftWristX + " rightWristX = " + rightWristX);
+    }
 }
 
-function speak(){
-    var synth = window.speechSynthesis;
 
-    var utterThis = new SpeechSynthesisUtterance(speak_data);
+function draw()
+{
+    background('#bfaef2');
 
-    synth.speak(utterThis);
+    document.getElementById("font_size").innerHTML = "Font Size of the text will be = " + difference +"px";
+    textSize(difference);
+    fill('#FFFFFF');
+    text('Rasika', 50, 400);
+}
 
-    speak_data = "";
+function changeScreen()
+{
+    window.location = "thankYouPage.html";
 }
